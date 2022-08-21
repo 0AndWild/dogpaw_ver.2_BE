@@ -12,7 +12,7 @@ import java.util.TimeZone;
 @EnableScheduling
 @EnableJpaAuditing // 생성 시간/수정 시간 자동 업데이트
 @SpringBootApplication
-public class DogfawApplication {
+public class DogfawApplication { 
 
     @PostConstruct
     void init() {
