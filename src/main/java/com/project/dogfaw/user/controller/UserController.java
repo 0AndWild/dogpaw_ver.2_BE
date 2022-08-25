@@ -14,6 +14,11 @@ import com.project.dogfaw.user.model.User;
 import com.project.dogfaw.user.repository.UserRepository;
 import com.project.dogfaw.user.service.KakaoUserService;
 import com.project.dogfaw.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,6 +33,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RestController
 @Slf4j
+@Tag(name = "User", description = "유저 API")
 public class UserController {
     private final UserService userService;
     private final KakaoUserService kakaoUserService;
@@ -35,7 +41,11 @@ public class UserController {
     private final UserRepository userRepository;
     private final CommonService commonService;
 
+
     // 회원가입 API
+
+
+    @Operation(summary = "회원가입", description = "이메일(username), 닉네임(nickname), 비밀번호(password), 스택(stacks)을 이용하여 유저 정보를 신규 등록합니다.")
     @PostMapping("/user/signup")
     public ResponseEntity<Object> registerUser(@RequestBody SignupRequestDto requestDto) {
         TokenDto tokenDto = userService.register(requestDto);
