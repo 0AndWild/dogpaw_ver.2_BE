@@ -61,8 +61,6 @@ public class PostService {
             //모든 게시글 내림차순으로(startAt으로 변경 필요)
             Slice<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(pageRequest);
 
-
-
             //BookMarkStatus를 추가적으로 담아줄 ArrayList 생성
             ArrayList<MyApplyingResponseDto> postList = new ArrayList<>();
             //true || false 값을 담아줄 Boolean type의 bookMarkStatus 변수를 하나 생성
@@ -88,13 +86,11 @@ public class PostService {
                 for (BookMark BmPostId : bookMarkLists){
                     bookmarkPostId.add(BmPostId.getPost().getId());
                 }
-
-                for (int i = 0; i<posts.getSize(); i++){
-                    Post post = posts.getContent().get(i);
-                    User writer = posts.getContent().get(i).getUser();
+                
+                for (Post post: posts){
+                    User writer = post.getUser();
                     bookMarkStatus = bookmarkPostId.contains(post.getId());
                     List<PostStack> stringPostStacks = post.getPostStacks();
-
                     //PostResponseDto를 이용해 게시글과, 북마크 상태,writer 는 해당 게시글 유저의 프로필 이미지를 불러오기 위함
                     MyApplyingResponseDto mainDTO = new MyApplyingResponseDto(post, stringPostStacks, bookMarkStatus, writer);
                     //아까 생성한 ArrayList에 새로운 모양의 값을 담아줌
