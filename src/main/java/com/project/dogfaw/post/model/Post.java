@@ -8,6 +8,7 @@ import com.project.dogfaw.user.model.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.FetchMode;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class Post extends Timestamped {
     @Column
     private int commentCnt;
 
-    @OneToMany
+    @OneToMany(mappedBy = "post",fetch = FetchType.EAGER)
     private List<PostStack> postStacks;
 
 
