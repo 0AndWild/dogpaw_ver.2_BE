@@ -26,6 +26,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.List;
@@ -42,6 +43,8 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final CommonService commonService;
+
+    private final EntityManager em;
 
     public SseEmitter subscribe(Long userId, String lastEventId) {
 
@@ -68,6 +71,7 @@ public class NotificationService {
         }catch (Exception e){
             throw new CustomException(ErrorCode.FAIL_SUBSCRIBE);
         }
+        em.close();
         return emitter;
     }
 
@@ -87,6 +91,7 @@ public class NotificationService {
                     .data(data));
         } catch (IOException exception) {
             emitterRepository.deleteById(emitterId);
+            throw new RuntimeException("연결오류!");
         }
     }
     // Last - event - id 가 존재한다는 것은 받지 못한 데이터가 있다는 것이다.
