@@ -13,9 +13,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import javax.swing.*;
 
 @RequiredArgsConstructor
 @Configuration
@@ -30,18 +34,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure(WebSecurity web) {
+    public void configure(WebSecurity web) throws Exception {
 
         // h2-console 사용에 대한 허용 (CSRF, FrameOptions 무시)
         web
-
+                .httpFirewall(defaultHttpFirewall())
                 .ignoring()
-                .antMatchers("/h2-console/**");
-//                .antMatchers(HttpMethod.GET,"/detail/**");
-
-
+                .antMatchers("/h2-console/**")
+                .antMatchers("/v2/api-docs","/v3/api-docs",  "/configuration/ui",
+                        "/swagger-resources", "/configuration/security",
+                        "/swagger-ui.html","/swagger-ui/**", "/webjars/**","/swagger/**");
 
     }
+
+    /*Spring Security의 기본적인 정책인 URL에 더블슬래시가 들어가는 것을 허용하지 않는것을 허용하게 설정*/
+    @Bean
+    public HttpFirewall defaultHttpFirewall() {
+        return new DefaultHttpFirewall();
+    }
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -56,6 +67,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests()
                 // login 없이 허용
+                .antMatchers("/swagger-resources/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/user/signup/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/user/nickname/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/user/login/**").permitAll()
@@ -105,6 +117,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
 
 

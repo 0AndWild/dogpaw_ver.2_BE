@@ -1,10 +1,12 @@
 package com.project.dogfaw.post.dto;
 
 import com.project.dogfaw.post.model.Post;
+import com.project.dogfaw.post.model.PostStack;
 import com.project.dogfaw.user.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -39,11 +41,12 @@ public class MyApplyingResponseDto {
 
 
 
-    public MyApplyingResponseDto(Post post, List<String> stacks, boolean bookMarkStatus, User writer){
+    public MyApplyingResponseDto(Post post, List<PostStack> stacks, boolean bookMarkStatus, User writer){
         this.postId = post.getId();
         this.title = post.getTitle();
         this.online = post.getOnline();
-        this.stacks = stacks;
+        this.stacks = stringStacks(stacks);
+//        this.stacks = stacks;
         this.period = post.getPeriod();
         this.startAt = post.getStartAt();
         this.content = post.getContent();
@@ -56,6 +59,15 @@ public class MyApplyingResponseDto {
         this.currentMember = post.getCurrentMember();
         this.maxCapacity = post.getMaxCapacity();
         this.applierCnt = post.getUserApplications().size();
+
+
+    }
+    private List<String> stringStacks(List<PostStack> stacks) {
+        List<String> stringStacks = new ArrayList<>();
+        for (PostStack stack : stacks){
+            stringStacks.add(stack.getStack());
+        }
+        return stringStacks;
     }
 
 }
