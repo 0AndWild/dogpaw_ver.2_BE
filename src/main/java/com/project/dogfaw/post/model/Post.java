@@ -57,11 +57,11 @@ public class Post extends Timestamped {
     @Column
     private int commentCnt;
 
-    @OneToMany(mappedBy = "post",fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "post",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private List<PostStack> postStacks;
 
 
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private List<UserApplication> userApplications = new ArrayList<UserApplication>();
 
 
