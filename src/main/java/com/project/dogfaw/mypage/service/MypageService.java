@@ -183,11 +183,12 @@ public class MypageService {
                     bookMarkStatus = false;
                 }
             }
-            List<PostStack> postStacks = postStackRepository.findByPostId(postId);
-            List<String> stringPostStacks = new ArrayList<>();
-            for (PostStack postStack : postStacks) {
-                stringPostStacks.add(postStack.getStack());
-            }
+            List<PostStack> stringPostStacks = post.getPostStacks();
+
+//            List<String> stringPostStacks = new ArrayList<>();
+//            for (PostStack postStack : postStacks) {
+//                stringPostStacks.add(postStack.getStack());
+//            }
             MyApplyingResponseDto postDto = new MyApplyingResponseDto(post, stringPostStacks, bookMarkStatus, writer);
             //아까 생성한 ArrayList에 새로운 모양의 값을 담아줌
             postList.add(postDto);
