@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,44 +51,28 @@ public class MypageService {
 
     private final NotificationService notificationService;
 
+    private final EntityManager em;
+
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
     /*내가 북마크한 글 조회*/
     public ArrayList<MyBookmarkResponseDto> myBookmark(User user) {
 
-        //유저가 북마크한 것을 리스트로 모두 불러옴
         List<BookMark> userPosts = bookMarkRepository.findAllByUserOrderByIdDesc(user);
-
-        //유저가 북마크한 게시글을 찾아 리스트에 담아주기 위해 ArrayList 생성
-        ArrayList<Post> userPostings = new ArrayList<>();
-
-        //BookMarkStatus를 추가적으로 담아줄 ArrayList 생성
         ArrayList<MyBookmarkResponseDto> postList = new ArrayList<>();
-
-        //로그인한 유저가 북마크한 게시글들을 ArrayList에 담아줌
+        //로그인한 유저가 북마크한 글들을 불러와 해당 게시글의 정보를 MyBookmarkResponseDto에 담아 리턴
         for (BookMark userPost : userPosts) {
             Post userPosting = userPost.getPost();
-            userPostings.add(userPosting);
-        }
-
-        //유저가 북마크한 게시물과 그 게시물의 user 객체를 postList 에 담아서 전달
-        for (Post post : userPostings) {
-            Long postId = post.getId();
-            User writer = post.getUser();
-
-            List<PostStack> postStacks = postStackRepository.findByPostId(postId);
+            User writer = userPosting.getUser();
             List<String> stringPostStacks = new ArrayList<>();
+            userPosting.getPostStacks().forEach((postStack) -> stringPostStacks.add(postStack.getStack()));
 
-            for (PostStack postStack : postStacks) {
-                stringPostStacks.add(postStack.getStack());
-            }
+            MyBookmarkResponseDto postDto = new MyBookmarkResponseDto(userPosting, stringPostStacks, writer);
 
-            //PostResponseDto를 이용해 게시글과, 북마크 상태,writer 는 해당 게시글 유저의 프로필 이미지를 불러오기 위함
-            MyBookmarkResponseDto postDto = new MyBookmarkResponseDto(post, stringPostStacks, writer);
-            //아까 생성한 ArrayList에 새로운 모양의 값을 담아줌
             postList.add(postDto);
         }
+
         return postList;
     }
 
