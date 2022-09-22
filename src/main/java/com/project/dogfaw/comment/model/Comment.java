@@ -32,12 +32,12 @@ public class Comment extends Timestamped {
     @Column
     private String profileImg;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "USER_ID")
     private User user;
 
     // FK로 POST_ID 들어옴.
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "POST_ID")
     private Post post;
 
