@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -79,47 +80,27 @@ public class MypageService {
     /*내가 작성한 글 조회*/
     public ArrayList<MyPostResponseDto> myPost(User user) {
 
-        //유저가 작성한 모든글 리스트로 불러옴///(모든 게시글 X)
         List<Post> posts = postRepository.findAllByUserOrderByIdDesc(user);
-        //유저가 북마크한 것들을 리스트로 불러옴
-        List<BookMark> userPosts = bookMarkRepository.findAllByUser(user);
+        List<BookMark> bmList = bookMarkRepository.findAllByUser(user);
 
-        //유저가 북마크한 게시글을 찾아 리스트에 담아주기 위해 ArrayList 생성
-        ArrayList<Post> userPostings = new ArrayList<>();
-        //BookMarkStatus를 추가적으로 담아줄 ArrayList 생성
         ArrayList<MyPostResponseDto> postList = new ArrayList<>();
-
-        //true || false 값을 담아줄 Boolean type의 bookMarkStatus 변수를 하나 생성
+        HashSet<Long> bm_PostId = new HashSet<>();
         Boolean bookMarkStatus = false;
 
-        //로그인한 유저가 북마크한 게시글들을 ArrayList에 담아줌
-        for (BookMark userPost : userPosts) {
-            Post userPosting = userPost.getPost();
-            userPostings.add(userPosting);
-        }
+        //로그인한 유저가 북마크한 게시글 postId를 HashSet에 삽입
+        bmList.forEach((bm) -> bm_PostId.add(bm.getPost().getId()));
 
-        //일치하면 bookMarkStatus = true 아니면 false를 bookMarkStatus에 담아줌
+        //북마크여부, 자신이 작성한 글의 기술 스택 담아 리턴
         for (Post post : posts) {
             Long postId = post.getId();
             User writer = post.getUser();
-            for (Post userPost : userPostings) {
-                Long userPostId = userPost.getId();
-                //객체를 불러올경우 메모리에 할당되는 주소값으로 불려지기 때문에 비교시 다를 수 밖에 없음
-                // 객체 안에있는 특정 데이터 타입으로 비교해줘야 함
-                if (postId.equals(userPostId)) {
-                    bookMarkStatus = true;
-                    break; //true일 경우 탈출
-                } else {
-                    bookMarkStatus = false;
-                }
-            }
-            List<PostStack> postStacks = postStackRepository.findByPostId(postId);
+            //북마크여부
+            bookMarkStatus = bm_PostId.contains(postId);
+            //기술스택
             List<String> stringPostStacks = new ArrayList<>();
-            for (PostStack postStack : postStacks) {
-                stringPostStacks.add(postStack.getStack());
-            }
+            post.getPostStacks().forEach((postStack) -> stringPostStacks.add(postStack.getStack()));
             MyPostResponseDto postDto = new MyPostResponseDto(post, stringPostStacks, bookMarkStatus, writer);
-            //아까 생성한 ArrayList에 새로운 모양의 값을 담아줌
+
             postList.add(postDto);
         }
         return postList;
