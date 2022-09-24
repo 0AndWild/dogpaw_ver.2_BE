@@ -40,7 +40,7 @@ public class User {
     @Column
     private Long kakaoId;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "stack_id")
     private List<Stack> stacks;
 
