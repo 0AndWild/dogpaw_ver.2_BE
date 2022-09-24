@@ -51,14 +51,8 @@ public class PostService {
     public Map<String, Object> allPost(User user, long page) {
         try {
             PageRequest pageRequest = PageRequest.of((int) page, 24);
-            //BookmarkStatus를 true || false를 담아주기 위해 for문을 두번 돌리기 때문에
-            //모든 게시글을 다 찾아와서 for문을 돌렸을 때 서버 부하가 어느정도 올지 모르겠음(만약 게시글이 많을 경우)
-            //게시글이 많을 경우 이중 for문때문에 부하가 상당할 것으로 예상이 되므로 메인페이지에서 최신 게시글 Top20정도만
-            //보여주는 것도 하나의 방법이 될 것 같음.
 
-            //내림차순으로 Top 20만 내림차순으로
-            //List<Post> posts = postRepository.findTop20ByOrderByModifiedAtDesc();
-            //모든 게시글 내림차순으로(startAt으로 변경 필요)
+            //모든 게시글 내림차순으로
             Slice<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(pageRequest);
 
             //BookMarkStatus를 추가적으로 담아줄 ArrayList 생성
