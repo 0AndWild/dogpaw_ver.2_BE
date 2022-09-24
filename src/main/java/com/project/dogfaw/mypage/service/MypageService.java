@@ -114,47 +114,23 @@ public class MypageService {
         //유저가 북마크한 것을 리스트로 모두 불러옴
         List<BookMark> userBookmarks = bookMarkRepository.findAllByUser(user);
 
-        //유저가 참여신청한 게시글을 찾아 리스트에 담아주기 위해 ArrayList 생성
         ArrayList<Post> userApplying = new ArrayList<>();
-        //유저가 북마크한 게시글을 찾아 리스트에 담아주기 위해 ArrayList 생성
-        ArrayList<Post> userPostings = new ArrayList<>();
-        //BookMarkStatus를 추가적으로 담아줄 ArrayList 생성
+        HashSet<Long> bm_List = new HashSet<>();
         ArrayList<MyApplyingResponseDto> postList = new ArrayList<>();
-
-        //true || false 값을 담아줄 Boolean type의 bookMarkStatus 변수를 하나 생성
         Boolean bookMarkStatus = false;
 
-        //로그인한 유저가 참여신청한 게시글들을 ArrayList에 담아줌
-        for (UserApplication userPost : userApply) {
-            Post userApplied = userPost.getPost();
-            userApplying.add(userApplied);
-        }
-
-        //로그인한 유저가 북마크한 게시글을 다 찾아서 ArrayList에 담아줌
-        for (BookMark userBookmark : userBookmarks) {
-            Post userPosting = userBookmark.getPost();
-            userPostings.add(userPosting);
-        }
+        //유저가 지원신청한 게시글들을 ArrayList에 담아줌
+        userApply.forEach(ua->userApplying.add(ua.getPost()));
+        //유저가 북마크한 게시글의 Long id를 HashSet에 담아줌
+        userBookmarks.forEach(bm->bm_List.add(bm.getPost().getId()));
 
         //일치하면 bookMarkStatus = true 아니면 false를 bookMarkStatus에 담아줌
         for (Post post : userApplying) {
-            Long postId = post.getId();
             User writer = post.getUser();
-            for (Post userPost : userPostings) {
-                Long userPostId = userPost.getId();
-                if (postId.equals(userPostId)) {
-                    bookMarkStatus = true;
-                    break; //true일 경우 탈출
-                } else {
-                    bookMarkStatus = false;
-                }
-            }
+            //북마크 여부
+            bookMarkStatus = bm_List.contains(post.getId());
+            //기술스택
             List<PostStack> stringPostStacks = post.getPostStacks();
-
-//            List<String> stringPostStacks = new ArrayList<>();
-//            for (PostStack postStack : postStacks) {
-//                stringPostStacks.add(postStack.getStack());
-//            }
             MyApplyingResponseDto postDto = new MyApplyingResponseDto(post, stringPostStacks, bookMarkStatus, writer);
             //아까 생성한 ArrayList에 새로운 모양의 값을 담아줌
             postList.add(postDto);
@@ -168,42 +144,27 @@ public class MypageService {
         List<Acceptance> acceptances = acceptanceRepository.findAllByUserOrderByIdDesc(user);
         //해당 유저의 북마크 리스트
         List<BookMark> bookMarks = bookMarkRepository.findAllByUser(user);
-        //게시물 객체를 담아줄 ArrayList 생성
-        ArrayList<Post> acceptedList = new ArrayList<>();
-        ArrayList<Post> bookMarkedList = new ArrayList<>();
-        //BookMarkStatus를 추가적으로 담아줄 ArrayList 생성
-        ArrayList<MyAcceptanceResponseDto> postList = new ArrayList<>();
 
+        ArrayList<Post> acceptedList = new ArrayList<>();
+        HashSet<Long> bookMarkedList = new HashSet<>();
+        ArrayList<MyAcceptanceResponseDto> postList = new ArrayList<>();
         Boolean bookMarkStatus = false;
 
-        //해당 유저의 참여완료된 모집글 객체를 하나씩 ArrayList에 담아줌
-        for (Acceptance acceptance : acceptances) {
-            Post post = acceptance.getPost();
-            acceptedList.add(post);
-        }
-        //해당 유저가 북마크한 모집글 객체를 하나씩 ArrayList에 담아줌
-        for (BookMark bookMark : bookMarks) {
-            Post post = bookMark.getPost();
-            bookMarkedList.add(post);
-        }
+        //해당 유저의 참여완료된 게시글 ArrayList에 담아줌
+        acceptances.forEach(ac->acceptedList.add(ac.getPost()));
+        //해당 유저가 북마크한 글들 HashSet에 담아줌
+        bookMarks.forEach(bm->bookMarkedList.add(bm.getPost().getId()));
+
         for (Post accepted : acceptedList) {
             Long acceptedId = accepted.getId();
             User writer = accepted.getUser();
-            for (Post bookMarked : bookMarkedList) {
-                Long bookMarkedId = bookMarked.getId();
-
-                if (acceptedId.equals(bookMarkedId)) {
-                    bookMarkStatus = true;
-                    break;
-                } else {
-                    bookMarkStatus = false;
-                }
-            }
-            List<PostStack> postStacks = postStackRepository.findByPostId(acceptedId);
+            //북마크여부
+            bookMarkStatus = bookMarkedList.contains(acceptedId);
+            //기술스택
+            List<PostStack> postStacks = accepted.getPostStacks();
             List<String> stringPostStacks = new ArrayList<>();
-            for (PostStack postStack : postStacks) {
-                stringPostStacks.add(postStack.getStack());
-            }
+            postStacks.forEach(ps->stringPostStacks.add(ps.getStack()));
+
             MyAcceptanceResponseDto postDto = new MyAcceptanceResponseDto(accepted, stringPostStacks, bookMarkStatus, writer);
             postList.add(postDto);
 
