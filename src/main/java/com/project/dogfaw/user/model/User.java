@@ -1,6 +1,7 @@
 package com.project.dogfaw.user.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.project.dogfaw.mypage.dto.MypageRequestDto;
 import com.project.dogfaw.user.dto.SignupRequestDto;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
@@ -54,6 +55,9 @@ public class User {
     }
 
     public void updateNickname(SignupRequestDto requestDto) {
+        this.nickname = requestDto.getNickname();
+    }
+    public void updateProfile(MypageRequestDto requestDto) {
         this.nickname = requestDto.getNickname();
     }
 
