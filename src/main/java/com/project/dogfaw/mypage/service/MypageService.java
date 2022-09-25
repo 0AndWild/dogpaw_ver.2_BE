@@ -193,9 +193,9 @@ public class MypageService {
             User applier = applicant.getUser();
             List<String> stackList = new ArrayList<>();
             List<Stack> stacks = applier.getStacks();
-            for (Stack stack : stacks) {
-                stackList.add(stack.getStack());
-            }
+            //지원자의 기술스택
+            stacks.forEach(stack->stackList.add(stack.getStack()));
+
             AllApplicantsDto allApplicantsDto = new AllApplicantsDto(applier, stackList);
             users.add(allApplicantsDto);
         }
@@ -210,12 +210,14 @@ public class MypageService {
         //현재 사용하고 있는 닉네임은 사용가능
         if (!user.getNickname().equals(nickname)) {
             if (userRepository.existsByNickname(nickname)) {
-                throw new CustomException(ErrorCode.SIGNUP_NICKNAME_OK);
+                throw new CustomException(ErrorCode.SIGNUP_NICKNAME_DUPLICATE);
             }
         }
         Long userId = user.getId();
         stackRepository.deleteAllByUserId(userId);
-        user.setNickname(requestDto.getNickname());
+        user.updateProfile(requestDto);
+
+//        user.setNickname(requestDto.getNickname());
         List<Stack> stack = stackRepository.saveAll(tostackByUserId(requestDto.getStacks(), user));
         user.updateStack(stack);
     }
@@ -257,9 +259,7 @@ public class MypageService {
             User teammateUser = teammate.getUser();
             List<String> stackList = new ArrayList<>();
             List<Stack> stacks = teammateUser.getStacks();
-            for (Stack stack : stacks) {
-                stackList.add(stack.getStack());
-            }
+            stacks.forEach(stack->stackList.add(stack.getStack()));
             AllTeammateDto allTeammateDto = new AllTeammateDto(teammateUser, stackList);
             users.add(allTeammateDto);
         }
@@ -354,40 +354,25 @@ public class MypageService {
         //게시물 객체를 담아줄 ArrayList 생성
         ArrayList<MyAcceptanceResponseDto> acceptancePostList = new ArrayList<>();
         ArrayList<Post> acceptedList = new ArrayList<>();
-        ArrayList<Post> bookMarkedList = new ArrayList<>();
+        HashSet<Long> bookMarkedList = new HashSet<>();
 
         Boolean bookMarkStatus = false;
 
         //해당 유저의 참여완료된 모집글 객체를 하나씩 ArrayList에 담아줌
-        for(Acceptance acceptance:acceptances){
-            Post post = acceptance.getPost();
-            acceptedList.add(post);
-        }
+        acceptances.forEach(ac->acceptedList.add(ac.getPost()));
+
         //로그인한 유저가 북마크한 모집글 객체를 하나씩 ArrayList에 담아줌
-        for(BookMark bookMark:bookMarks){
-            Post post = bookMark.getPost();
-            bookMarkedList.add(post);
-        }
+        bookMarks.forEach(bm-> bookMarkedList.add(bm.getPost().getId()));
 
         for(Post acceptedPost : acceptedList){
-            Long acceptedPostId = acceptedPost.getId();
-            User writer = acceptedPost.getUser();
-            for(Post bookMarkedPost:bookMarkedList){
-                Long bookMarkedId = bookMarkedPost.getId();
-
-                if (acceptedPostId.equals(bookMarkedId)){
-                    bookMarkStatus = true;
-                    break;
-                }else {
-                    bookMarkStatus = false;
-                }
-            }
-            List<PostStack> postStacks = postStackRepository.findByPostId(acceptedPostId);
+            //북마크 여부
+            bookMarkStatus = bookMarkedList.contains(acceptedPost.getId());
+            //기술스택
+            List<PostStack> postStacks = acceptedPost.getPostStacks();
             List<String> stringPostStacks = new ArrayList<>();
-            for(PostStack postStack : postStacks){
-                stringPostStacks.add(postStack.getStack());
-            }
-            MyAcceptanceResponseDto acceptanceDto = new MyAcceptanceResponseDto(acceptedPost, stringPostStacks, bookMarkStatus, writer);
+            postStacks.forEach(ps->stringPostStacks.add(ps.getStack()));
+
+            MyAcceptanceResponseDto acceptanceDto = new MyAcceptanceResponseDto(acceptedPost, stringPostStacks, bookMarkStatus, acceptedPost.getUser());
             acceptancePostList.add(acceptanceDto);
         }
 
@@ -399,25 +384,13 @@ public class MypageService {
 
         //일치하면 bookMarkStatus = true 아니면 false를 bookMarkStatus에 담아줌
         for (Post post : posts) {
-            Long UserPostId = post.getId();
-            User writer = post.getUser();
-            for (Post bookMarkedPost: bookMarkedList ) {
-                Long bookMarkedPostId = bookMarkedPost.getId();
-                //객체를 불러올경우 메모리에 할당되는 주소값으로 불려지기 때문에 비교시 다를 수 밖에 없음
-                // 객체 안에있는 특정 데이터 타입으로 비교해줘야 함
-                if (UserPostId.equals(bookMarkedPostId)) {
-                    bookMarkStatus = true;
-                    break; //true일 경우 탈출
-                } else {
-                    bookMarkStatus = false;
-                }
-            }
-            List<PostStack> postStacks = postStackRepository.findByPostId(UserPostId);
+            //북마크 여부
+            bookMarkStatus = bookMarkedList.contains(post.getId());
+            List<PostStack> postStacks = post.getPostStacks();
             List<String> stringPostStacks = new ArrayList<>();
-            for(PostStack postStack : postStacks){
-                stringPostStacks.add(postStack.getStack());
-            }
-            MyPostResponseDto postDto = new MyPostResponseDto(post, stringPostStacks, bookMarkStatus, writer);
+            postStacks.forEach(ps->stringPostStacks.add(ps.getStack()));
+
+            MyPostResponseDto postDto = new MyPostResponseDto(post, stringPostStacks, bookMarkStatus, post.getUser());
             postList.add(postDto);
         }
         return new OtherUserMypageResponseDto(userInfo,acceptancePostList,postList);
