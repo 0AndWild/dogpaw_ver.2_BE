@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,4 +35,5 @@ public class Stack {
         this.stack = stackdto.getStack();
         this.userId = user.getId();
     }
+
 }
